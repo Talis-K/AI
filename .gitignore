@@ -1,2 +1,4 @@
 **/.DS_Store
-**/AI
+**/venv_ai
+**/.polyscope.ini
+**/imgui.ini
