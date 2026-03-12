@@ -79,6 +79,14 @@ def return_PCA(points, cluster_labels, k):
 
         variances = pca.explained_variance_ratio_
 
+        if i == 0 or i == 199:
+            print(variances[0])
+            print(variances[1])
+            print(variances[2])
+            print(pca.components_[0])
+            print(pca.components_[1])
+            print(pca.components_[2])
+
         height = center[2]
 
         feature_vector = [
@@ -120,27 +128,26 @@ def cluster_ground_truth(cluster_labels, point_gt_labels, k, threshold = 0.5):
 # SVM (train on clusters, predict points)
 # --------------------------------------------------------------------------
 
-def train_svm_and_predict_points(features, cluster_labels, cluster_gt, k):
+def train_svm_and_predict_points(features, cluster_labels, cluster_gt, k, point_gt_labels):
 
     # Normalize features so SVM isn't dominated by the "largest-scale" feature.
     scaler = StandardScaler()
     X = scaler.fit_transform(features)
 
-    svm = SVC(kernel="rbf")
-
-    cv_folds = min(10, len(np.unique(cluster_gt)))
-    if cv_folds >= 2:
-        scores = cross_val_score(svm, X, cluster_gt, cv=cv_folds)
-        print("SVM cross-val accuracy:", scores, "mean:", float(scores.mean()))
-
-    svm.fit(X, cluster_gt)
+    svm = SVC(kernel="rbf").fit(X, cluster_gt)
 
     cluster_pred = svm.predict(X)
+
+    train_acc = np.mean(cluster_pred == cluster_gt)
+    print("SVM training accuracy on clusters:", train_acc)
 
     # Broadcast cluster label back onto points.
     point_pred = np.zeros(len(cluster_labels), dtype=int)
     for i in range(k):
         point_pred[cluster_labels == i] = int(cluster_pred[i])
+
+    xxx = np.mean(point_pred == point_gt_labels)
+    print("SVM training accuracy on points:", xxx)
 
     return point_pred
 
@@ -216,21 +223,11 @@ def main() -> None:
     cluster_gt = cluster_ground_truth(cluster_labels, point_gt_labels, args.clusters, threshold=0.5)
 
     # 5. SVM Classification
-    svm_point_predictions = train_svm_and_predict_points(features, cluster_labels, cluster_gt, args.clusters)
+    svm_point_predictions = train_svm_and_predict_points(features, cluster_labels, cluster_gt, args.clusters, point_gt_labels)
 
     # 6. Visualization
-    visualize(
-        points,
-        point_gt_labels,
-        args.clusters,
-        cluster_labels,
-        pca_centers,
-        pc1,
-        pc2,
-        pc3,
-        features,
-        svm_predictions=svm_point_predictions,
-    )
+    visualize(points, point_gt_labels, args.clusters, cluster_labels, pca_centers, pc1, pc2, pc3, features, svm_point_predictions)
+
 
 
 if __name__ == "__main__":
