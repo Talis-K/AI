@@ -138,16 +138,15 @@ def train_svm_and_predict_points(features, cluster_labels, cluster_gt, k, point_
 
     cluster_pred = svm.predict(X)
 
-    train_acc = np.mean(cluster_pred == cluster_gt)
-    print("SVM training accuracy on clusters:", train_acc)
+    cluster_accuracy = np.mean(cluster_pred == cluster_gt)
+    print("SVM training accuracy on clusters:", cluster_accuracy)
 
-    # Broadcast cluster label back onto points.
     point_pred = np.zeros(len(cluster_labels), dtype=int)
     for i in range(k):
         point_pred[cluster_labels == i] = int(cluster_pred[i])
 
-    xxx = np.mean(point_pred == point_gt_labels)
-    print("SVM training accuracy on points:", xxx)
+    point_accuracy = np.mean(point_pred == point_gt_labels)
+    print("SVM training accuracy on points:", point_accuracy)
 
     return point_pred
 
@@ -198,7 +197,7 @@ def visualize(points, labels, k, cluster_labels, pca_centers, pc1, pc2, pc3, fea
 def main() -> None:
     parser = argparse.ArgumentParser(description="Point Cloud Segmentation pipeline (K-Means -> PCA -> SVM)")
     parser.add_argument("path", nargs="?", default="airport_downsample.ply")
-    parser.add_argument("-k", "--clusters", type=int, default=6, help="Number of k-means clusters (default: 6)")
+    parser.add_argument("-k", "--clusters", type=int, default=150, help="Number of k-means clusters (default: 6)")
     args = parser.parse_args()
 
     # 1. Load Data
